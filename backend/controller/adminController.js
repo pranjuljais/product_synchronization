@@ -47,63 +47,43 @@ const adminLogin = async (req, res) => {
   }
 };
 
-const updateProfile = async (req, res) => {
+const updateBankDetails = async (req, res) => {
   try {
-    const {
-      phone,
-      business_name,
-      gst,
-      pan,
-      msme,
-      address,
-      tnc,
-      bank_name,
-      branch_address,
-      accountNo,
-      ifscCode,
-    } = req.body;
-    if (
-      !phone ||
-      !business_name ||
-      !gst ||
-      !pan ||
-      !msme ||
-      !address ||
-      !tnc ||
-      !bank_name ||
-      !branch_address ||
-      !accountNo ||
-      !ifscCode
-    ) {
-      return res.json({ success: false, message: "Details missing" });
-    }
-    const { id } = req.params;
-    const admin = await adminModel.findByIdAndUpdate(
+    const { bank, branch, account, ifsc } = req.body;
+    const id = req.admin.id;
+    const bankDetails = await adminModel.findByIdAndUpdate(
       id,
-      {
-        phone,
-        business_name,
-        gst,
-        pan,
-        msme,
-        address,
-        tnc,
-        bank_name,
-        branch_address,
-        accountNo,
-        ifscCode,
-      },
+      { bank, branch, account, ifsc },
       { new: true },
     );
-    res.json({ success: true, message: "Profile updated" });
+    if (!bankDetails)
+      return res.json({ success: false, message: "Something went wrong" });
+    res.json({ success: true, message: "Bank Details Updated" });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
 };
 
-const removeAdmin = async (req, res) => {
+const updateBusinessDetails = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.admin.id;
+    const { name, address, phone, gst, pan, msme } = req.body;
+    const businessDetails = await adminModel.findByIdAndUpdate(
+      id,
+      { business: name, address, phone, gst, pan, msme },
+      { new: true },
+    );
+    if (!businessDetails)
+      return res.json({ success: false, message: "Something went wrong" });
+    res.json({ success: true, message: "Business Details Updated" });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
+
+const updateTnc = async (req, res) => {
+  try {
+    const id = req.admin.id;
     const deletedAdmin = await adminModel.findByIdAndDelete(id);
     if (!deletedAdmin)
       return res.json({ success: false, message: "Admin not found" });
@@ -113,11 +93,10 @@ const removeAdmin = async (req, res) => {
   }
 };
 
-
-
 export {
   adminRegister,
   adminLogin,
-  updateProfile,
-  removeAdmin,
+  updateBankDetails,
+  updateBusinessDetails,
+  updateTnc,
 };
