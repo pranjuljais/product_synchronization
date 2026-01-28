@@ -1,10 +1,11 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import AppContext from "../context/AppContext";
 import { toast } from "react-toastify";
 import axios from "axios";
 
 const UpdateBusiness = () => {
-  const [updateBusiness, setUpdateBusiness] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+
   const [businessDetails, setBusinessDetails] = useState({
     name: "",
     phone: "",
@@ -14,21 +15,45 @@ const UpdateBusiness = () => {
     msme: "",
   });
 
-  const { backendUrl, token, loading, setLoading } = useContext(AppContext);
+  const { backendUrl, profile, token, loading, setLoading } =
+    useContext(AppContext);
 
-  const onBusinessUpdate = (e) => {
+  useEffect(() => {
+    if (profile) {
+      setBusinessDetails({
+        name: profile.name || "",
+        phone: profile.phone || "",
+        address: profile.address || "",
+        gst: profile.gst || "",
+        pan: profile.pan || "",
+        msme: profile.msme || "",
+      });
+    }
+  }, [profile]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setBusinessDetails((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const onBusinessUpdate = async (e) => {
     e.preventDefault();
+    if (!isEditing) return;
+
     try {
       setLoading(true);
-      const response = axios(
-        `${backendUrl}/profile/business`,
+
+      const response = await axios.patch(
+        `${backendUrl}/admin/business`,
         businessDetails,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
+
       if (response.data.success) {
         toast.success(response.data.message);
+        setIsEditing(false);
       } else {
         toast.error(response.data.message);
       }
@@ -40,110 +65,96 @@ const UpdateBusiness = () => {
   };
 
   return (
-    <form className="w-100 p-2 border rounded" onSubmit={onBusinessUpdate}>
-      <p className="font-medium text-xl">Business Details</p>
-      <div className="flex items-center gap-2">
-        <label>Business Name:</label>
-        <input
-          type="text"
+    <form
+      onSubmit={onBusinessUpdate}
+      className="p-6 rounded-2xl shadow border border-gray-200 space-y-6"
+    >
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Business Details</h2>
+
+        {!isEditing ? (
+          <p
+            onClick={() => setIsEditing(true)}
+            className="px-4 py-2 rounded-lg bg-amber-600 text-white"
+          >
+            Edit
+          </p>
+        ) : (
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-4 py-2 rounded-lg bg-green-600 text-white"
+          >
+            {loading ? "Updating..." : "Save"}
+          </button>
+        )}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Input
+          label="Business Name"
           name="name"
           value={businessDetails.name}
-          onChange={(e) =>
-            setBusinessDetails({ ...businessDetails, name: e.target.value })
-          }
-          placeholder="Business Name"
-          className="outline-none border border-gray-300 px-3 py-1 rounded"
+          onChange={handleChange}
+          disabled={!isEditing}
         />
-      </div>
-      <div className="flex items-center gap-2">
-        <label>Business Address:</label>
-        <input
-          type="text"
-          name="address"
-          value={businessDetails.address}
-          onChange={(e) =>
-            setBusinessDetails({
-              ...businessDetails,
-              address: e.target.value,
-            })
-          }
-          placeholder="Business Address"
-          className="outline-none border border-gray-300 px-3 py-1 rounded"
-        />
-      </div>
-      <div className="flex items-center gap-2">
-        <label>Phone Number:</label>
-        <input
-          type="text"
+
+        <Input
+          label="Phone Number"
           name="phone"
           value={businessDetails.phone}
-          onChange={(e) =>
-            setBusinessDetails({
-              ...businessDetails,
-              phone: e.target.value,
-            })
-          }
-          placeholder="Account Number"
-          className="outline-none border border-gray-300 px-3 py-1 rounded"
+          onChange={handleChange}
+          disabled={!isEditing}
         />
-      </div>
-      <div className="flex items-center gap-2">
-        <label>GST Number:</label>
-        <input
-          type="text"
+
+        <Input
+          label="GST Number"
           name="gst"
           value={businessDetails.gst}
-          onChange={(e) =>
-            setBusinessDetails({ ...businessDetails, gst: e.target.value })
-          }
-          placeholder="GST Number"
-          className="outline-none border border-gray-300 px-3 py-1 rounded"
+          onChange={handleChange}
+          disabled={!isEditing}
         />
-      </div>
-      <div className="flex items-center gap-2">
-        <label>PAN Number:</label>
-        <input
-          type="text"
+
+        <Input
+          label="PAN Number"
           name="pan"
           value={businessDetails.pan}
-          onChange={(e) =>
-            setBusinessDetails({ ...businessDetails, pan: e.target.value })
-          }
-          placeholder="PAN Number"
-          className="outline-none border border-gray-300 px-3 py-1 rounded"
+          onChange={handleChange}
+          disabled={!isEditing}
         />
-      </div>
-      <div className="flex items-center gap-2">
-        <label>MSME Number:</label>
-        <input
-          type="text"
+
+        <Input
+          label="MSME Number"
           name="msme"
           value={businessDetails.msme}
-          onChange={(e) =>
-            setBusinessDetails({ ...businessDetails, msme: e.target.value })
-          }
-          placeholder="MSME Number"
-          className="outline-none border border-gray-300 px-3 py-1 rounded"
+          onChange={handleChange}
+          disabled={!isEditing}
         />
+
+        <div className="md:col-span-2">
+          <label className="text-sm font-medium">Business Address</label>
+          <textarea
+            name="address"
+            rows="3"
+            value={businessDetails.address}
+            onChange={handleChange}
+            disabled={!isEditing}
+            className="w-full mt-1 border px-3 py-2 rounded-lg resize-none disabled:bg-gray-100"
+          />
+        </div>
       </div>
-      {updateBusiness ? (
-        <p
-          onClick={() => setUpdateBusiness(false)}
-          className="cursor-pointer w-13 px-3 py-2 rounded bg-amber-700 text-white font-medium"
-        >
-          Edit
-        </p>
-      ) : (
-        <button
-          onClick={() => setUpdateBusiness(true)}
-          className="cursor-pointer px-3 py-2 rounded bg-green-700 text-white font-medium"
-          type="submit"
-        >
-          {loading ? "Updating..." : "Update"}
-        </button>
-      )}
     </form>
   );
 };
+
+const Input = ({ label, disabled, ...props }) => (
+  <div className="flex flex-col">
+    <label className="text-sm font-medium">{label}</label>
+    <input
+      {...props}
+      disabled={disabled}
+      className="mt-1 border px-3 py-2 rounded-lg disabled:bg-gray-100"
+    />
+  </div>
+);
 
 export default UpdateBusiness;

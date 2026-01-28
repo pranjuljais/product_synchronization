@@ -2,6 +2,14 @@ import adminModel from "../models/adminModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
+const getProfile = async (req, res) => {
+  try {
+    res.json({ success: true, profile: req.admin });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
+
 const adminRegister = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -83,16 +91,22 @@ const updateBusinessDetails = async (req, res) => {
 const updateTnc = async (req, res) => {
   try {
     const id = req.admin.id;
-    const deletedAdmin = await adminModel.findByIdAndDelete(id);
-    if (!deletedAdmin)
-      return res.json({ success: false, message: "Admin not found" });
-    res.json({ success: true, message: "Admin removed" });
+    const { tnc } = req.body;
+    const cleanedTnc = await adminModel.findByIdAndUpdate(
+      id,
+      { tnc },
+      { new: true },
+    );
+    if (!cleanedTnc)
+      return res.json({ success: false, message: "Something went wrong" });
+    res.json({ success: true, message: "Terms & Conditions Updated" });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
 };
 
 export {
+  getProfile,
   adminRegister,
   adminLogin,
   updateBankDetails,

@@ -3,8 +3,8 @@ import AppContext from "../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const UpdateBank = ({ bankData }) => {
-  const { backendUrl, token, loading, setLoading } = useContext(AppContext);
+const UpdateBank = () => {
+  const { backendUrl,profile, token, loading, setLoading } = useContext(AppContext);
 
   const [isEditing, setIsEditing] = useState(false);
   const [bankDetails, setBankDetails] = useState({
@@ -15,26 +15,31 @@ const UpdateBank = ({ bankData }) => {
   });
 
   useEffect(() => {
-    if (bankData) {
+    if (profile) {
       setBankDetails({
-        bank: bankData.bank || "",
-        branch: bankData.branch || "",
-        account: bankData.account || "",
-        ifsc: bankData.ifsc || "",
+        bank: profile.bank || "",
+        branch: profile.branch || "",
+        account: profile.account || "",
+        ifsc: profile.ifsc || "",
       });
     }
-  }, [bankData]);
+  }, [profile]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setBankDetails((prev) => ({ ...prev, [name]: value }));
+  };
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
+    if (!isEditing) return;
+
     try {
       setLoading(true);
       const response = await axios.patch(
         `${backendUrl}/admin/bank`,
         bankDetails,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (response.data.success) {
@@ -51,85 +56,83 @@ const UpdateBank = ({ bankData }) => {
   };
 
   return (
-    <form
-      onSubmit={onSubmitHandler}
-      className="w-100 p-4 border rounded space-y-2"
-    >
-      <p className="font-medium text-xl">Bank Details</p>
+    <div className="border border-gray-200 my-2 rounded-2xl shadow-sm p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <h2 className="text-xl font-semibold text-gray-800">Bank Details</h2>
 
-      <div className="flex items-center gap-2">
-        <label className="w-32">Bank Name:</label>
-        <input
-          type="text"
-          value={bankDetails.bank}
-          disabled={!isEditing}
-          onChange={(e) =>
-            setBankDetails({ ...bankDetails, bank: e.target.value })
-          }
-          className="flex-1 outline-none border border-gray-300 px-3 py-1 rounded"
-        />
-      </div>
-
-      <div className="flex items-center gap-2">
-        <label className="w-32">Branch:</label>
-        <input
-          type="text"
-          value={bankDetails.branch}
-          disabled={!isEditing}
-          onChange={(e) =>
-            setBankDetails({ ...bankDetails, branch: e.target.value })
-          }
-          className="flex-1 outline-none border border-gray-300 px-3 py-1 rounded"
-        />
-      </div>
-
-      <div className="flex items-center gap-2">
-        <label className="w-32">Account No:</label>
-        <input
-          type="text"
-          value={bankDetails.account}
-          disabled={!isEditing}
-          onChange={(e) =>
-            setBankDetails({ ...bankDetails, account: e.target.value })
-          }
-          className="flex-1 outline-none border border-gray-300 px-3 py-1 rounded"
-        />
-      </div>
-
-      <div className="flex items-center gap-2">
-        <label className="w-32">IFSC:</label>
-        <input
-          type="text"
-          value={bankDetails.ifsc}
-          disabled={!isEditing}
-          onChange={(e) =>
-            setBankDetails({ ...bankDetails, ifsc: e.target.value })
-          }
-          className="flex-1 outline-none border border-gray-300 px-3 py-1 rounded"
-        />
-      </div>
-
-      <div className="pt-2">
         {!isEditing ? (
-          <button
-            type="button"
+          <p
             onClick={() => setIsEditing(true)}
-            className="px-4 py-2 rounded bg-amber-700 text-white font-medium"
+            className="px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition"
           >
             Edit
-          </button>
+          </p>
         ) : (
           <button
             type="submit"
+            form="bank-form"
             disabled={loading}
-            className="px-4 py-2 rounded bg-green-700 text-white font-medium"
+            className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition disabled:opacity-60"
           >
-            {loading ? "Updating..." : "Update"}
+            {loading ? "Updating..." : "Save"}
           </button>
         )}
       </div>
-    </form>
+      <form
+        id="bank-form"
+        onSubmit={onSubmitHandler}
+        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        <Input
+          label="Bank Name"
+          name="bank"
+          value={bankDetails.bank}
+          onChange={handleChange}
+          disabled={!isEditing}
+        />
+
+        <Input
+          label="Branch"
+          name="branch"
+          value={bankDetails.branch}
+          onChange={handleChange}
+          disabled={!isEditing}
+        />
+
+        <Input
+          label="Account Number"
+          name="account"
+          value={bankDetails.account}
+          onChange={handleChange}
+          disabled={!isEditing}
+        />
+
+        <Input
+          label="IFSC Code"
+          name="ifsc"
+          value={bankDetails.ifsc}
+          onChange={handleChange}
+          disabled={!isEditing}
+        />
+      </form>
+    </div>
   );
 };
+
+const Input = ({ label, disabled, ...props }) => (
+  <div className="flex flex-col">
+    <label className="text-sm font-medium text-gray-700">{label}</label>
+    <input
+      {...props}
+      disabled={disabled}
+      className={`mt-1 px-3 py-2 rounded-lg border outline-none transition
+        ${
+          disabled
+            ? "bg-gray-100 text-gray-600 cursor-not-allowed"
+            : "bg-white border-gray-300 focus:ring-2 focus:ring-green-500"
+        }`}
+    />
+  </div>
+);
 
 export default UpdateBank;

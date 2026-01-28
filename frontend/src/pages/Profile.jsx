@@ -4,14 +4,9 @@ import UpdateTnc from "../components/UpdateTnc";
 
 const Profile = () => {
   return (
-    <div>
-      <div>
-        {/* Business Update */}
-        <UpdateBusiness />
-        {/* Bank Details */}
-        <UpdateBank />
-      </div>
-      {/* Terms & Conditions */}
+    <div className="max-w-4xl mx-auto bg-white">
+      <UpdateBusiness />
+      <UpdateBank />
       <UpdateTnc />
     </div>
   );
