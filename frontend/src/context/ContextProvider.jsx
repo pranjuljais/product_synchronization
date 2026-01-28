@@ -1,25 +1,30 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AppContext from "./AppContext";
+import axios from "axios";
 
 const ContextProvider = (props) => {
-  const [token, setToken] = useState("");
+  const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [loading, setLoading] = useState(false);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const navigate = useNavigate();
-  const location = useLocation();
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const response = await axios(`${backendUrl}/admin`);
+    };
+  });
 
   const value = useMemo(
     () => ({
       backendUrl,
       token,
-      location,
       loading,
       setLoading,
       navigate,
       setToken,
     }),
-    [backendUrl, token, loading, location, navigate],
+    [backendUrl, token, loading, navigate],
   );
 
   return (
