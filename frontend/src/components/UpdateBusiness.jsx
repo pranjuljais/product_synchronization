@@ -21,7 +21,7 @@ const UpdateBusiness = () => {
   useEffect(() => {
     if (profile) {
       setBusinessDetails({
-        name: profile.name || "",
+        name: profile.business || "",
         phone: profile.phone || "",
         address: profile.address || "",
         gst: profile.gst || "",
